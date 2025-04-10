@@ -84,12 +84,13 @@ public abstract class AgentBase {
     }
   }
 
-  protected void dealWithWriteOperation(
+  protected boolean dealWithWriteOperation(
       WriteOperation writeOperation, Recovery.RecoveryProcess recoveryProcess) throws IOException {
     try {
       writeOperation.call();
     } catch (ShutdownSignalException e) {
       handleShutdownSignalExceptionOnWrite(recoveryProcess, e);
+      return true;
     } catch (SocketException e) {
       if (recoveryProcess.isEnabled()) {
         if (LOGGER.isDebugEnabled()) {
@@ -100,6 +101,7 @@ public abstract class AgentBase {
         throw e;
       }
     }
+    return false;
   }
 
   protected void started() {

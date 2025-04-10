@@ -564,14 +564,16 @@ public class Producer extends AgentBase implements Runnable, ReturnListener, Con
       try {
         maybeWaitIfTooManyOutstandingPublishConfirms();
 
-        dealWithWriteOperation(
+        boolean hasPublishChannelCloseException = dealWithWriteOperation(
             () -> publish(messageBodySource.create(currentState.getMsgCount())),
             this.recoveryProcess);
 
         int messageCount = currentState.incrementMessageCount();
 
         commitTransactionIfNecessary(messageCount);
-        this.performanceMetrics.published();
+        if (!hasPublishChannelCloseException) {
+          this.performanceMetrics.published();
+        }
       } catch (IOException e) {
         throw new RuntimeException(e);
       } catch (InterruptedException e) {
